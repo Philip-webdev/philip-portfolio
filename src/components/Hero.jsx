@@ -82,6 +82,8 @@ export default function Hero() {
           letter-spacing: -0.03em;
           color: var(--text);
           margin-bottom: 24px;
+          overflow-wrap: break-word;
+          word-wrap: break-word;
         }
         .hero__accent { color: var(--accent); }
         .hero__sub {
@@ -90,6 +92,7 @@ export default function Hero() {
           line-height: 1.75;
           max-width: 480px;
           margin-bottom: 36px;
+          overflow-wrap: break-word;
         }
         .hero__actions {
           display: flex;
@@ -206,18 +209,30 @@ export default function Hero() {
           object-fit: contain;
         }
         @media (max-width: 900px) {
-          .hero { padding: 130px 0 40px; }
+          .hero { padding: 120px 0 40px; }
           .hero__grid {
             grid-template-columns: 1fr;
             text-align: center;
+            gap: 40px;
           }
           .hero__title { font-size: 2.2rem; }
           .hero__sub { margin: 0 auto 36px; }
-          .hero__actions { justify-content: center; }
+          .hero__actions { justify-content: center; flex-wrap: wrap; }
           .hero__photo { width: 200px; height: 200px; }
           .hero__metrics-card { max-width: 100%; }
           .hero__bottom { flex-direction: column; gap: 12px; }
           .hero__logos { gap: 24px; }
+        }
+        @media (max-width: 480px) {
+          .hero { padding: 100px 0 30px; }
+          .hero__title { font-size: 1.75rem; }
+          .hero__sub { font-size: 0.92rem; }
+          .hero__btn { padding: 12px 20px; font-size: 0.82rem; }
+          .hero__metrics-card { padding: 16px 20px; gap: 16px; }
+          .hero__metric-num { font-size: 1.15rem; }
+          .hero__metric-label { font-size: 0.62rem; }
+          .hero__photo { width: 160px; height: 160px; }
+          .hero__logo-img { height: 22px; }
         }
       `}</style>
     </section>
