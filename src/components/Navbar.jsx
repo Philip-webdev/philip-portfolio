@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const location = useLocation()
+  const isHome = location.pathname === '/'
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -17,6 +19,14 @@ export default function Navbar() {
     { label: 'Blog', to: '/blog' },
   ]
 
+  const handleAnchorClick = (e, href) => {
+    if (!isHome) {
+      e.preventDefault()
+      window.location.href = '/' + href
+    }
+    setMobileOpen(false)
+  }
+
   return (
     <>
       <nav className={`nav ${scrolled ? 'nav--scrolled' : ''}`}>
@@ -29,13 +39,13 @@ export default function Navbar() {
                 {l.to ? (
                   <Link to={l.to} onClick={() => setMobileOpen(false)}>{l.label}</Link>
                 ) : (
-                  <a href={l.href} onClick={() => setMobileOpen(false)}>{l.label}</a>
+                  <a href={l.href} onClick={(e) => handleAnchorClick(e, l.href)}>{l.label}</a>
                 )}
               </li>
             ))}
           </ul>
 
-          <a href="#contact" className="nav__cta">Get in touch</a>
+          <a href="#contact" className="nav__cta" onClick={(e) => handleAnchorClick(e, '#contact')}>Get in touch</a>
 
           <button className={`nav__burger ${mobileOpen ? 'nav__burger--open' : ''}`} onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
             <span/><span/><span/>
