@@ -134,7 +134,6 @@ export default function Hero() {
           border-radius: 50%;
           overflow: hidden;
           border: 4px solid var(--accent);
-          box-shadow: 0 0 0 8px rgba(26,86,219,0.1), 0 20px 60px rgba(0,0,0,0.08);
         }
         .hero__photo img {
           width: 100%;

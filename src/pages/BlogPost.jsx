@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import SEO from '../components/SEO'
 
-const API = 'http://localhost:3001/api'
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
 const fallbackPosts = {
   'building-rag-pipeline': {
@@ -125,6 +126,22 @@ export default function BlogPost() {
   const [comments, setComments] = useState([])
   const [commentForm, setCommentForm] = useState({ name: '', email: '', content: '' })
   const [submitting, setSubmitting] = useState(false)
+  const [readProgress, setReadProgress] = useState(0)
+  const articleRef = useRef(null)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!articleRef.current) return
+      const el = articleRef.current
+      const rect = el.getBoundingClientRect()
+      const total = el.scrollHeight - window.innerHeight
+      const current = -rect.top
+      const progress = Math.min(Math.max(current / total, 0), 1)
+      setReadProgress(progress)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   useEffect(() => {
     fetch(`${API}/posts/slug/${slug}`)
@@ -199,7 +216,14 @@ export default function BlogPost() {
   if (!post) return <div className="blog-post-loading"><div className="container">Post not found.</div></div>
 
   return (
-    <article className="post">
+    <article className="post" ref={articleRef}>
+      <SEO
+        title={post.title}
+        description={post.excerpt}
+        url={`/blog/${post.slug}`}
+        image={post.cover_image}
+      />
+      <div className="post__progress" style={{ transform: `scaleX(${readProgress})` }} />
       <div className="container post__container">
         <header className="post__header">
           <Link to="/blog" className="post__back">
@@ -275,7 +299,19 @@ export default function BlogPost() {
       </div>
 
       <style>{`
-        .post { padding: 120px 0 80px; }
+        .post { padding: 120px 0 80px; position: relative; }
+        .post__progress {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: var(--accent);
+          transform-origin: left;
+          transform: scaleX(0);
+          z-index: 200;
+          transition: transform 0.1s linear;
+        }
         .post__container { max-width: 720px; }
         .post__back {
           display: inline-flex;

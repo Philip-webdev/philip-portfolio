@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const API = 'http://localhost:3001/api'
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
 const ADMIN_EMAIL = 'philipbankole2100@gmail.com'
 const ADMIN_PASS = 'philip2026'

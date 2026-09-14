@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import SEO from '../components/SEO'
 
-const API = 'http://localhost:3001/api'
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
 export default function BlogList() {
   const [posts, setPosts] = useState([])
@@ -33,6 +34,11 @@ export default function BlogList() {
 
   return (
     <main className="blog-list">
+      <SEO
+        title="Writing"
+        description="Thoughts on engineering, products, and building — EdTech, FinTech, FoodTech, and AI."
+        url="/blog"
+      />
       <div className="container">
         <div className="blog-list__header">
           <p className="section-label">Writing</p>
