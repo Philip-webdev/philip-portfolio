@@ -114,19 +114,41 @@ export default function Navbar() {
         @media (max-width: 768px) {
           .nav__links {
             position: fixed;
-            inset: 0;
-            background: var(--bg);
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 280px;
+            background: var(--bg-card);
             flex-direction: column;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
-            gap: 28px;
-            opacity: 0;
+            gap: 0;
+            padding: 40px 32px;
+            box-shadow: -8px 0 30px rgba(0,0,0,0.1);
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             pointer-events: none;
+            border-left: 1px solid var(--border);
           }
-          .nav__links--open { opacity: 1; pointer-events: all; }
-          .nav__links a { font-size: 1.3rem; }
+          .nav__links--open {
+            transform: translateX(0);
+            pointer-events: all;
+          }
+          .nav__links li {
+            width: 100%;
+          }
+          .nav__links a {
+            font-size: 1rem;
+            padding: 14px 0;
+            display: block;
+            width: 100%;
+            border-bottom: 1px solid var(--border);
+          }
+          .nav__links a:last-child {
+            border-bottom: none;
+          }
           .nav__cta { display: none; }
-          .nav__burger { display: flex; }
+          .nav__burger { display: flex; z-index: 102; }
         }
       `}</style>
     </>
