@@ -156,13 +156,10 @@ export default function BlogPost() {
 
   useEffect(() => {
     if (!post) return
-    fetch(`${API}/comments/${post.id || slug}`)
+    fetch(`${API}/comments/${slug}`)
       .then(r => r.json())
       .then(setComments)
-      .catch(() => setComments([
-        { id: 1, name: 'Ade T.', content: 'Great article! The chunking strategy comparison was really helpful.', created_at: '2026-08-29' },
-        { id: 2, name: 'Sarah M.', content: 'I implemented this for my project and it works beautifully. Thanks for sharing.', created_at: '2026-08-30' },
-      ]))
+      .catch(() => setComments([]))
   }, [post, slug])
 
   const handleComment = (e) => {
