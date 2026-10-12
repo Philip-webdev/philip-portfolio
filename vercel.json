@@ -3,7 +3,6 @@
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "proxy": {
-    "entrypoint": "middleware.js",
-    "matcher": ["/blog/:slug"]
+    "entrypoint": "middleware.js"
   }
 }
