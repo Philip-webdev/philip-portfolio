@@ -45,13 +45,19 @@ const buildTags = (post) => {
 
 export default async function middleware(request) {
   try {
+    // Guard against self-fetch re-entry (fetching our own index.html)
+    if (request.headers.get('x-og-middleware')) return next()
+
     const slug = decodeURIComponent(
       new URL(request.url).pathname.replace(/^\/blog\//, '').replace(/\/+$/, '')
     )
     if (!slug || slug.includes('/')) return next()
 
     const [htmlRes, postRes] = await Promise.all([
-      fetch(`${SITE}/index.html`, { ...SITE_OPTS, headers: { 'user-agent': 'og-middleware' } }),
+      fetch(`${SITE}/index.html`, {
+        ...SITE_OPTS,
+        headers: { 'user-agent': 'og-middleware', 'x-og-middleware': '1' },
+      }),
       fetch(`${API}/posts/slug/${encodeURIComponent(slug)}`, API_OPTS),
     ])
 
