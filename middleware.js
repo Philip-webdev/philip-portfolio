@@ -45,18 +45,19 @@ const buildTags = (post) => {
 
 export default async function middleware(request) {
   try {
-    // Guard against self-fetch re-entry (fetching our own index.html)
-    if (request.headers.get('x-og-middleware')) return next({ headers: { 'x-og-dbg': 'reentry' } })
+    const url = new URL(request.url)
 
-    const slug = decodeURIComponent(
-      new URL(request.url).pathname.replace(/^\/blog\//, '').replace(/\/+$/, '')
-    )
+    // Guards against self-fetch re-entry (query param survives the round trip)
+    if (url.searchParams.has('og') || request.headers.get('x-og-middleware'))
+      return next({ headers: { 'x-og-dbg': 'guard' } })
+
+    const slug = decodeURIComponent(url.pathname.replace(/^\/blog\//, '').replace(/\/+$/, ''))
     if (!slug || slug.includes('/')) return next({ headers: { 'x-og-dbg': 'no-slug:' + slug.slice(0, 20) } })
 
     const [siteResult, postResult] = await Promise.allSettled([
-      fetch(`${SITE}/index.html`, {
+      fetch(`${SITE}/index.html?og=1`, {
         ...SITE_OPTS,
-        headers: { 'user-agent': 'og-middleware', 'x-og-middleware': '1' },
+        headers: { 'user-agent': 'og-middleware' },
       }),
       fetch(`${API}/posts/slug/${encodeURIComponent(slug)}`, API_OPTS),
     ])
