@@ -3,7 +3,9 @@ import { OG_TEMPLATE } from './og-template.js'
 
 const SITE = 'https://philip-portfolio-ruddy.vercel.app'
 const API = 'https://philip-blog-api.onrender.com/api'
-const API_OPTS = { signal: AbortSignal.timeout(12000) }
+
+const BOT_RE =
+  /facebookexternalhit|twitterbot|linkedinbot|whatsapp|slackbot|discordbot|telegrambot|pinterest|redditbot|embedly|quora|vkshare|skypeuri|applebot|googlebot|bingbot|yandex|preview|ogp|snaptweet|chrome-lighthouse/i
 
 const stripMarkdown = (content = '') =>
   content
@@ -39,6 +41,7 @@ const buildTags = (post) => {
 }
 
 export default async function middleware(request) {
+  const isBot = BOT_RE.test(request.headers.get('user-agent') || '')
   try {
     const url = new URL(request.url)
     const slug = decodeURIComponent(url.pathname.replace(/^\/blog\//, '').replace(/\/+$/, ''))
@@ -46,7 +49,12 @@ export default async function middleware(request) {
     if (!slug || slug.includes('/') || url.pathname === '/blog')
       return next({ headers: { 'x-og-dbg': 'skip:' + slug.slice(0, 20) } })
 
-    const postRes = await fetch(`${API}/posts/slug/${encodeURIComponent(slug)}`, API_OPTS)
+    // Link-preview scrapers can wait out a cold API; humans should not.
+    const timeout = isBot ? 20000 : 2500
+
+    const postRes = await fetch(`${API}/posts/slug/${encodeURIComponent(slug)}`, {
+      signal: AbortSignal.timeout(timeout),
+    })
     if (!postRes.ok) return next({ headers: { 'x-og-dbg': 'api:' + postRes.status } })
 
     const post = await postRes.json()
@@ -79,6 +87,6 @@ export default async function middleware(request) {
     })
   } catch (err) {
     console.error('og middleware failed:', err)
-    return next({ headers: { 'x-og-dbg': 'err:' + (err && err.name) } })
+    return next({ headers: { 'x-og-dbg': `err:${err && err.name}:${isBot ? 'bot' : 'human'}` } })
   }
 }
