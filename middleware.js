@@ -1,14 +1,9 @@
 import { next } from '@vercel/functions'
+import { OG_TEMPLATE } from './og-template.js'
 
 const SITE = 'https://philip-portfolio-ruddy.vercel.app'
 const API = 'https://philip-blog-api.onrender.com/api'
-const SITE_OPTS = { signal: AbortSignal.timeout(6000) }
 const API_OPTS = { signal: AbortSignal.timeout(12000) }
-
-export const config = {
-  matcher: '/blog/:slug',
-  runtime: 'nodejs',
-}
 
 const stripMarkdown = (content = '') =>
   content
@@ -46,40 +41,19 @@ const buildTags = (post) => {
 export default async function middleware(request) {
   try {
     const url = new URL(request.url)
-
-    // Guards against self-fetch re-entry (query param survives the round trip)
-    if (url.searchParams.has('og') || request.headers.get('x-og-middleware'))
-      return next({ headers: { 'x-og-dbg': 'guard' } })
-
     const slug = decodeURIComponent(url.pathname.replace(/^\/blog\//, '').replace(/\/+$/, ''))
-    if (!slug || slug.includes('/')) return next({ headers: { 'x-og-dbg': 'no-slug:' + slug.slice(0, 20) } })
 
-    const [siteResult, postResult] = await Promise.allSettled([
-      fetch(`${SITE}/index.html?og=1`, {
-        ...SITE_OPTS,
-        headers: { 'user-agent': 'og-middleware' },
-      }),
-      fetch(`${API}/posts/slug/${encodeURIComponent(slug)}`, API_OPTS),
-    ])
+    if (!slug || slug.includes('/') || url.pathname === '/blog')
+      return next({ headers: { 'x-og-dbg': 'skip:' + slug.slice(0, 20) } })
 
-    if (siteResult.status === 'rejected' || postResult.status === 'rejected') {
-      const which = [
-        siteResult.status === 'rejected' ? `site:${siteResult.reason && siteResult.reason.name}` : null,
-        postResult.status === 'rejected' ? `api:${postResult.reason && postResult.reason.name}` : null,
-      ].filter(Boolean).join(',')
-      return next({ headers: { 'x-og-dbg': 'rej:' + which } })
-    }
-
-    const htmlRes = siteResult.value
-    const postRes = postResult.value
-
-    if (!htmlRes.ok || !postRes.ok)
-      return next({ headers: { 'x-og-dbg': `fetch:${htmlRes.status}/${postRes.status}` } })
+    const postRes = await fetch(`${API}/posts/slug/${encodeURIComponent(slug)}`, API_OPTS)
+    if (!postRes.ok) return next({ headers: { 'x-og-dbg': 'api:' + postRes.status } })
 
     const post = await postRes.json()
     if (!post || !post.slug) return next({ headers: { 'x-og-dbg': 'no-post' } })
 
-    let html = await htmlRes.text()
+    const canonical = `${SITE}/blog/${post.slug}`
+    let html = OG_TEMPLATE
 
     html = html
       .replace(/<meta[^>]+(?:property|name)="(?:og:[^"]*|twitter:[^"]*)"[^>]*>\s*/gi, '')
@@ -88,13 +62,10 @@ export default async function middleware(request) {
         /<meta[^>]+name="description"[^>]*>/,
         `<meta name="description" content="${esc(post.excerpt || stripMarkdown(post.content || '').slice(0, 200))}" />`
       )
-      .replace(
-        /<link[^>]+rel="canonical"[^>]*>/,
-        `<link rel="canonical" href="${SITE}/blog/${post.slug}" />`
-      )
+      .replace(/<link[^>]+rel="canonical"[^>]*>/, `<link rel="canonical" href="${canonical}" />`)
 
     if (!html.includes('rel="canonical"')) {
-      html = html.replace('</head>', `    <link rel="canonical" href="${SITE}/blog/${post.slug}" />\n    </head>`)
+      html = html.replace('</head>', `    <link rel="canonical" href="${canonical}" />\n    </head>`)
     }
 
     html = html.replace('</head>', `    ${buildTags(post)}</head>`)
