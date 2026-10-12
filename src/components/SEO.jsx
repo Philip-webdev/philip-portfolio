@@ -6,8 +6,10 @@ export default function SEO({ title, description, url, image }) {
     const fullTitle = title ? `${title} | ${baseTitle}` : baseTitle
     const baseDesc = 'Building the digital infrastructure for Africa\'s next economy. Developer & founder shipping EdTech, FinTech, and FoodTech solutions.'
     const desc = description || baseDesc
-    const base_url = 'https://philip-portfolio.vercel.app'
-    const full_url = url ? `${base_url}${url}` : base_url
+    const origin = window.location.origin
+    const full_url = url ? `${origin}${url}` : origin
+    const isArticle = Boolean(url && url.startsWith('/blog/'))
+    const full_image = image || `${origin}/philip.jpeg`
 
     document.title = fullTitle
 
@@ -22,17 +24,17 @@ export default function SEO({ title, description, url, image }) {
     }
 
     setMeta('description', desc)
+    setMeta('og:site_name', 'Philip Bankole', 'property')
     setMeta('og:title', fullTitle, 'property')
     setMeta('og:description', desc, 'property')
     setMeta('og:url', full_url, 'property')
-    setMeta('og:type', url?.startsWith('/blog/') ? 'article' : 'website', 'property')
-    setMeta('twitter:title', fullTitle, 'name')
-    setMeta('twitter:description', desc, 'name')
-
-    if (image) {
-      setMeta('og:image', image, 'property')
-      setMeta('twitter:image', image, 'name')
-    }
+    setMeta('og:type', isArticle ? 'article' : 'website', 'property')
+    setMeta('og:image', full_image, 'property')
+    setMeta('og:image:alt', title || 'Philip Bankole', 'property')
+    setMeta('twitter:card', 'summary_large_image')
+    setMeta('twitter:title', fullTitle)
+    setMeta('twitter:description', desc)
+    setMeta('twitter:image', full_image)
 
     let canonical = document.querySelector('link[rel="canonical"]')
     if (!canonical) {

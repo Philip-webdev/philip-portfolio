@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import SEO from '../components/SEO'
+import Share from '../components/Share'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
@@ -245,6 +246,8 @@ export default function BlogPost() {
         <div className="post__body">
           {renderContent(post.content)}
         </div>
+
+        <Share title={post.title} />
 
         <section className="post__comments">
           <h3 className="post__comments-title">Comments ({comments.length})</h3>
