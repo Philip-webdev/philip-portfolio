@@ -53,13 +53,24 @@ export default async function middleware(request) {
     )
     if (!slug || slug.includes('/')) return next({ headers: { 'x-og-dbg': 'no-slug:' + slug.slice(0, 20) } })
 
-    const [htmlRes, postRes] = await Promise.all([
+    const [siteResult, postResult] = await Promise.allSettled([
       fetch(`${SITE}/index.html`, {
         ...SITE_OPTS,
         headers: { 'user-agent': 'og-middleware', 'x-og-middleware': '1' },
       }),
       fetch(`${API}/posts/slug/${encodeURIComponent(slug)}`, API_OPTS),
     ])
+
+    if (siteResult.status === 'rejected' || postResult.status === 'rejected') {
+      const which = [
+        siteResult.status === 'rejected' ? `site:${siteResult.reason && siteResult.reason.name}` : null,
+        postResult.status === 'rejected' ? `api:${postResult.reason && postResult.reason.name}` : null,
+      ].filter(Boolean).join(',')
+      return next({ headers: { 'x-og-dbg': 'rej:' + which } })
+    }
+
+    const htmlRes = siteResult.value
+    const postRes = postResult.value
 
     if (!htmlRes.ok || !postRes.ok)
       return next({ headers: { 'x-og-dbg': `fetch:${htmlRes.status}/${postRes.status}` } })
